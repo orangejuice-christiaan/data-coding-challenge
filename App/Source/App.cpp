@@ -1,54 +1,61 @@
+#include "Util.h"
+#include <format>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <iterator>
 #include <string>
-#include <array>
-#include <sstream>
+#include <string_view>
+#include <vector>
 
-template <int size>
-void processData(std::string_view line, void (*processFn)(std::array<std::string, size>&))
+void processData(const std::string& line, const std::function<void(const std::vector<std::string_view>&)>& fn, std::vector<std::string_view>& fieldsBuffer)
 {
-    std::stringstream test((std::string)line);
-    std::string segment;
-    std::array<std::string, size> lineData {};
-
-    int i = 0;
-
-    while (std::getline(test, segment, ','))
-    {
-        lineData[i] = segment;
-        ++i;
-    }
-
-    processFn(lineData);
+	splitCsvLine(line, fieldsBuffer);
+	fn(fieldsBuffer);
 }
 
-template <int size>
-void getLongestName(std::array<std::string, size>& data)
+void getLongestName(const std::vector<std::string_view>& fields, std::string& currentLongestName)
 {
-    auto firstName = data[2];
-    auto lastName = data[3];
+	const auto& firstName = fields[2];
+	const auto& lastName = fields[3];
+	const auto nameLength = std::ssize(firstName) + std::ssize(lastName);
 
-    std::cout << firstName << " " << lastName << "\n";
+	if (nameLength > std::ssize(currentLongestName))
+		currentLongestName = std::format("{} {}", firstName, lastName);
 }
 
 int main()
 {
-    std::ifstream inf{ "C:/Git/data-coding-challenge/App/Source/resources/input-small.csv" };
+	std::ifstream inf { "D:/Github/data-coding-challenge/App/Source/resources/input-small.csv" };
 
-    if (!inf)
-    {
-        std::cerr << "Could not find/open file.\n";
-        return 1;
-    }
+	if (!inf)
+	{
+		std::cerr << "Could not find/open file.\n";
+		return 1;
+	}
 
-    int i{ 0 };
+	int i { 0 };
 
-    std::string strInput{};
-    while (std::getline(inf, strInput)) {
-        if (i != 0)
-            processData<12>(strInput, getLongestName); // todo dynamically get nColumns
-        ++i;
-    }
+	Timer t;
+
+	std::string strInput {};
+	std::string longestName {};
+
+	std::vector<std::string_view> fieldsBuffer;
+	fieldsBuffer.reserve(12);
+
+	while (std::getline(inf, strInput))
+	{
+		if (i != 0)
+			processData(strInput, [&longestName](auto& data)
+				{
+					getLongestName(data, longestName);
+				}, fieldsBuffer);
+		++i;
+	}
+
+	std::cout << longestName << "\n";
+	std::cout << "Time elapsed: " << t.elapsed() << " seconds\n";
 
 	return 0;
 }
