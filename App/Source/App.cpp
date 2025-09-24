@@ -47,9 +47,9 @@ int main()
 	while (std::getline(inf, strInput))
 	{
 		if (i != 0)
-			processData(strInput, [&longestName](auto& data)
+			processData(strInput, [&longestName](auto& fields)
 				{
-					getLongestName(data, longestName);
+					getLongestName(fields, longestName);
 				}, fieldsBuffer);
 		++i;
 	}
