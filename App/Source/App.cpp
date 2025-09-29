@@ -26,9 +26,9 @@ void getLongestName(const std::vector<std::string_view>& fields, std::string& cu
 
 int main()
 {
-	std::ifstream inf { "D:/Github/data-coding-challenge/App/Source/resources/input-small.csv" };
+	std::ifstream file { "C:/Git/data-coding-challenge/App/Source/resources/input-tiny.csv" };
 
-	if (!inf)
+	if (!file)
 	{
 		std::cerr << "Could not find/open file.\n";
 		return 1;
@@ -38,20 +38,20 @@ int main()
 
 	Timer t;
 
-	std::string strInput {};
-	std::string longestName {};
+	std::string longestName{ "TODO" };
 
-	std::vector<std::string_view> fieldsBuffer;
-	fieldsBuffer.reserve(12);
+	const size_t BUFFER_SIZE = 64 * 1024; // 64 KB
+	std::vector<char> buffer(BUFFER_SIZE);
 
-	while (std::getline(inf, strInput))
-	{
-		if (i != 0)
-			processData(strInput, [&longestName](auto& fields)
-				{
-					getLongestName(fields, longestName);
-				}, fieldsBuffer);
-		++i;
+	while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0) {
+		size_t count = file.gcount();
+		size_t lineCount = 0;
+		size_t fieldCount = 0;
+		for (size_t i = 0; i < count; ++i) {
+			char ch = buffer[i];
+
+			// process ch
+		}
 	}
 
 	std::cout << longestName << "\n";
@@ -59,3 +59,8 @@ int main()
 
 	return 0;
 }
+
+/*processData(strInput, [&longestName](auto& fields)
+	{
+		getLongestName(fields, longestName);
+	}, fieldsBuffer);*/
