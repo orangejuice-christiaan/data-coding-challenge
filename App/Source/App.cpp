@@ -9,28 +9,33 @@ void SetNewLongestName(int& firstLen, int& lastLen, int& bestLen, std::string& l
 	int totalLen = firstLen + lastLen;
 	if (totalLen > bestLen)
 	{
-		longestFirst.assign(firstName, firstLen);
-		longestLast.assign(lastName, lastLen);
+		longestFirst = std::string(firstName, firstLen);
+		longestLast = std::string(lastName, lastLen);
 		bestLen = totalLen;
 	}
 	firstLen = lastLen = 0;
 	field = 0;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	std::ifstream file { "D:/Github/data-coding-challenge/App/Source/resources/input-small.csv" };
+	std::ios::sync_with_stdio(false);
+	std::cin.tie(nullptr);
 
-	if (!file)
-	{
-		std::cerr << "Could not find/open file.\n";
+	if (argc < 2) {
+		std::cerr << "Usage: App.exe <path-to-file>\n";
 		return 1;
 	}
 
+	std::string filePath = argv[1];
+	FILE* file = fopen(filePath.c_str(), "rb");
+	if (!file) { perror("fopen"); return 1; }
+
 	Timer t;
 
-	const size_t BUFFER_SIZE = 64 * 1024; // 64 KB
+	const size_t BUFFER_SIZE = 1024 * 1024; // 1024 KB
 	std::vector<char> buffer(BUFFER_SIZE);
+	size_t bytesRead;
 
 	char firstName[512];
 	char lastName[512];
@@ -42,22 +47,15 @@ int main()
 
 	bool inQuotes = false;
 	int field = 0;
-	bool headerSkipped = false;
 
-	while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0)
+	while ((bytesRead = fread(buffer.data(), 1, buffer.size(), file)) > 0)
 	{
 		const char* ptr = buffer.data();
-		const char* end = ptr + file.gcount();
+		const char* end = ptr + bytesRead;
 
 		while (ptr != end)
 		{
 			char ch = *ptr++;
-
-			if (!headerSkipped)
-			{
-				if (ch == '\n') { headerSkipped = true; field = 0; }
-				continue;
-			}
 
 			if (ch == '"')
 			{
@@ -92,6 +90,8 @@ int main()
 			}
 		}
 	}
+
+	fclose(file);
 
 	std::cout << longestFirst << " " << longestLast << "\n";
 	std::cout << "Time elapsed: " << t.elapsed() << " seconds\n";
